@@ -1,36 +1,33 @@
 import os
+import requests
+import random
+import tempfile
 from dotenv import load_dotenv
+from moviepy.editor import VideoFileClip
+from pydub import AudioSegment, silence
 import praw
-import yt_dlp
 
-# Load environment variables
 load_dotenv()
 
-# Initialize Reddit client
+# Reddit and IG credentials from .env
 reddit = praw.Reddit(
     client_id=os.getenv("REDDIT_CLIENT_ID"),
     client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
-    username=os.getenv("REDDIT_USERNAME"),
-    password=os.getenv("REDDIT_PASSWORD"),
-    user_agent=os.getenv("REDDIT_USER_AGENT")
+    user_agent="motivational_bot"
 )
 
-# Choose subreddit
-subreddit = reddit.subreddit("PublicFreakout")
+IG_USER_ID = os.getenv("IG_USER_ID")
+IG_ACCESS_TOKEN = os.getenv("IG_ACCESS_TOKEN")
 
-# Download first video with audio using yt_dlp
-for post in subreddit.hot(limit=10):
-    if "v.redd.it" in post.url:
-        print(f"Downloading: {post.title}")
-        
-        ydl_opts = {
-            'outtmpl': 'downloaded_video.%(ext)s',
-            'merge_output_format': 'mp4',
-            'quiet': False,
-        }
-
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([post.url])
-        
-        print("✅ Downloaded and saved as 'downloaded_video.mp4'")
-        break
+# -------------------------------- #
+# 1. Download top motivational video from Reddit
+def download_video_from_reddit(subreddits=["GetMotivated", "motivational"]):
+    for subreddit_name in subreddits:
+        subreddit = reddit.subreddit(subreddit_name)
+        for post in subreddit.hot(limit=10):
+            if post.url.endswith((".mp4", ".mov")):
+                video_url = post.url
+                print(f"Found video: {video_url}")
+                response = requests.get(video_url)
+                if response.status_code == 200:
+                    temp_path = tempfile_
